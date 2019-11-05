@@ -6,7 +6,7 @@ import Visualizer
 import librosa.display
 
 # edit following wav file name
-infile = 'samples/ля.wav'
+infile = 'samples/la.wav'
 outfile = 'samples/output_short.wav'
 noisefile = 'samples/car_noise_2.wav'
 
