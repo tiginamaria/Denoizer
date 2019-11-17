@@ -27,9 +27,9 @@ def decompose(fft):
 def compare_spectrogram(filter_type, original_signal, filtered_signal, sr):
     """Plots the spectrogram of the audio and the filtered audio signals in a subplot
     :param filter_type: type of used filter
-    :return original_signal: original audio signal
-    :return filtered_signal: filtered audio signal
-    :return sr: sampling rate
+    :param original_signal: original audio signal
+    :param filtered_signal: filtered audio signal
+    :param sr: sampling rate
     """
 
     plt.subplot(1, 2, 1)
@@ -42,43 +42,23 @@ def compare_spectrogram(filter_type, original_signal, filtered_signal, sr):
     plt.axis(ymin=10, ymax=10000)
     plt.show()
 
-def compare_amplitudes(filter_type, original_audio, filtered_audio, sr):
-    """Plots the spectrogram of the audio and the filtered audio signals in a subplot
+
+def compare_magnitude(filter_type, original_audio, filtered_audio, sr):
+    """Plots magnitude of the audio and the filtered audio signals in a subplot
     :param filter_type: type of used filter
-    :return original_audio: original audio signal
-    :return filtered_audio: filtered audio signal
-    :return sr: sampling rate
+    :param original_audio: original audio signal
+    :param filtered_audio: filtered audio signal
+    :param sr: sampling rate
     """
     plt.grid(True)
     plt.subplot(2, 1, 1)
     plt.title('Original')
-    librosa.display.waveplot(x=original_audio, sr=sr)
+    librosa.display.waveplot(original_audio, sr=sr)
     plt.subplot(2, 1, 2)
     plt.title('Filtered by ' + filter_type)
-    librosa.display.waveplot(x=filtered_audio, sr=sr)
+    librosa.display.waveplot(filtered_audio, sr=sr)
     plt.show()
-    #
-    # ipd.Audio(x, rate=sr)
-    # plt.title(title)
-    # plt.ylabel('Amplitude')
-    # plt.xlabel('Time')
-    # plt.grid(True)
-    # time = np.arange(x.shape[0]) / sr
-    # plt.plot(time, x)
-    # # librosa.display.waveplot(x, sr=sr)
 
-def amplitude_spectrum_plot(title, x, sr):
-    x = np.mean(x, axis=1)
-    plt.title(title + ' amplitude spectrum plot')
-    plt.ylabel('Amplitude')
-    plt.xlabel('Frequency')
-    plt.plot(x.T)
-
-def differense_plot(x, y):
-    plt.plot(x, label='Input')
-    plt.plot(y, label='Output')
+    plt.plot(original_audio, label='Input', color='r')
+    plt.plot(filtered_audio, label='Output', color='b')
     plt.show()
-    librosa.display.waveplot(np.array([1, 2, 3]))
-
-
-differense_plot(1, 1)
