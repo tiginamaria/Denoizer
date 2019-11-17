@@ -21,4 +21,3 @@ def decompose(fft):
     :return phase: phase spectrum
     """
     return np.abs(fft), np.angle(fft)
-  
