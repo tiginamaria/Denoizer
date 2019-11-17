@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import librosa, librosa.display
 
+
 def compare_spectrogram(filter_type, original_signal, filtered_signal, sr):
     """Plots the spectrogram of the audio and the filtered audio signals in a subplot
     :param filter_type: type of used filter

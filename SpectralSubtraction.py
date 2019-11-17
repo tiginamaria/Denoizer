@@ -1,40 +1,71 @@
 import numpy as np
-# import scipy
 import scipy
+import librosa
 
-import Visualizer
-import librosa.display
+from FilterUtils import import_signal
+from Visualiser import compare_spectrogram, compare_magnitude
 
-# edit following wav file name
-infile = 'samples/la.wav'
+infile = 'samples/voice_with_car_noise.wav'
+noisefile = 'samples/car_noise.wav'
 outfile = 'samples/output_short.wav'
-noisefile = 'samples/car_noise_2.wav'
 
-# load input file, and stft (Short-time Fourier transform)
-print('load wav', infile)
-x, sr = librosa.load(infile, sr=None, mono=True) # load audio file with noise as: x[t] - discrete signal and sr - sampling rate
-fft_x = librosa.stft(x)         # Short-time Fourier transform
-x_amplitude_sp = np.abs(fft_x)  # get audio amplitude spectrum
-x_phase_sp = np.angle(fft_x)    # get audio phase spectrum
 
-Visualizer.display_plots("Input audio", x, x_amplitude_sp, sr)
+class SSFilter(object):
+    """Spectral Subtraction filter"""
 
-# load noise file, and stft (Short-time Fourier transform)
-print('load wav', noisefile)
-noise, noise_sr = librosa.load(noisefile, sr=None, mono=True)
-fft_noise = librosa.stft(noise)
-noise_amplitude_sp = np.abs(fft_noise)  # get audio amplitude spectrum
-noise_footprint = np.mean(noise_amplitude_sp, axis=1) # get mean noise amplitude
+    def decompose(self, fft):
+        """Decomposes fft of signal to magnitude spectrum nd phase spectrum
+        :param fft: fft of signal
+        :return magnitude: magnitude spectrum
+        :return phase: phase spectrum
+        """
+        return np.abs(fft), np.angle(fft)
 
-Visualizer.display_plots("Noise audio", noise, noise_amplitude_sp, noise_sr)
+    def filter(self, signal, noise):
+        """Filters the signal using Spectral subtraction algorithm
+        :param signal: signal to denoise
+        :param noise: noise signal
+        :return filtered_signal: filtered signal
+        """
 
-# calculate output audio signal with istft (Inverse short-time Fourier transform)
-y_amplitude_sp = (x_amplitude_sp - noise_footprint.reshape((noise_footprint.shape[0], 1))).clip(0.)  # reshape for broadcast to subtract
-fft_y = y_amplitude_sp * np.exp(1.0j * x_phase_sp) # apply phase information
-y = librosa.istft(fft_y) # back to time domain signal
+        # Apply Short-time Fourier transform to signal
+        fft_signal = librosa.stft(signal)
+        signal_magnitude, signal_phase = SSFilter.decompose(self, fft_signal)
 
-Visualizer.display_plots("Output audio", y, y_amplitude_sp, sr)
+        # Apply Short-time Fourier transform to noise signal
+        fft_noise = librosa.stft(noise)
+        noise_magnitude, _ = SSFilter.decompose(self, fft_noise)
+        # Get mean noise amplitude
+        noise_footprint = np.mean(noise_magnitude, axis=1)
 
-# save as a wav file
-scipy.io.wavfile.write(outfile, sr, (y * 32768).astype(np.int16))
-print('write wav', outfile)
+        # Calculate output magnitude spectrum
+        filtered_audio_magnitude = (signal_magnitude - noise_footprint.reshape((noise_footprint.shape[0], 1))).clip(0.)
+        # Add phase information
+        fft_filtered_signal = filtered_audio_magnitude * np.exp(1.0j * signal_phase)
+        # Apply Inverse short-time Fourier transform to return back to time domain signal
+        filtered_signal = librosa.istft(fft_filtered_signal)
+
+        return filtered_signal
+
+
+def main():
+    # Load input file
+    signal, sr, _ = import_signal(infile, 1)
+
+    # Load noise file
+    noise, noise_sr, _ = import_signal(noisefile, 1)
+
+    # Apply filter
+    ss_filter = SSFilter()
+    filtered_signal = ss_filter.filter(signal, noise)
+
+    # Save filtered signal as a wav file
+    scipy.io.wavfile.write(outfile, sr, (filtered_signal * 32768).astype(np.int16))
+
+    # Visualise the difference
+    compare_spectrogram("Spectral Subtraction filter", signal, filtered_signal, sr)
+    compare_magnitude("Spectral Subtraction filter", signal, filtered_signal, sr)
+
+
+if __name__ == '__main__':
+    main()
