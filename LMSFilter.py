@@ -40,9 +40,9 @@ class LMSFilter(object):
 
 def main():
     # Import the audio from the file
-    signal, sr, norm = import_signal('samples/voice_with_car_noise.wav', 1000)
+    signal, sr, norm = import_signal(infile, 1000)
 
-    noise, _, _ = import_signal('samples/output_short.wav', 1000)
+    noise, _, _ = import_signal(noisefile, 1000)
     noise = pump_signal(noise, len(signal))
 
     # Initialize the filter
@@ -52,11 +52,11 @@ def main():
     error, filtered_signal = lms_filter.filter(signal, noise)
 
     # Export to wav to verify that the noise is gone
-    scipy.io.wavfile.write('samples/lms_audio.wav', sr, filtered_signal * norm)
+    scipy.io.wavfile.write(outfile, sr, filtered_signal * norm)
 
     # Visualise the difference
-    compare_spectrogram("Spectral Subtraction filter", signal, filtered_signal, sr)
-    compare_magnitude("Spectral Subtraction filter", signal, filtered_signal, sr)
+    compare_spectrogram("LMS filter", signal, filtered_signal, sr)
+    compare_magnitude("LMS filter", signal, filtered_signal, sr)
 
 
 if __name__ == '__main__':
